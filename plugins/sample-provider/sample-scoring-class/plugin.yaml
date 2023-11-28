@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scoring-demo-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      initContainers:
+      - name: init-container
+        image: curlimages/curl:latest  # 使用 curl 镜像
+        command: ['sh', '-c', 'sleep 10 && curl -X POST -H "Content-Type: application/json" -d "{\"status\": {\"score\": \"100\", \"metrics\": [\"F1\", \"ACCU\"]}}" {{ .CompleteNotifyUrl }}']
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
