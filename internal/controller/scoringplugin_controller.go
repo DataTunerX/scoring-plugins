@@ -26,7 +26,7 @@ import (
 	"github.com/DataTunerX/scoring-plugins/pkg/config"
 	"github.com/DataTunerX/utility-server/logging"
 	"github.com/DataTunerX/utility-server/parser"
-	"github.com/qiniu/x/errors"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
@@ -80,10 +80,16 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 
+		// Merge parameters from DataPlugin and Dataset
+		mergedParameters, err := r.mergeParameters(&scoringPlugin, &scoring)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
 		// Build the path to the plugin YAML file
 		pluginPath := filepath.Join("plugins", scoringPlugin.Spec.Provider, scoringPlugin.Spec.ScoringClass, "plugin.yaml")
 		// Apply the plugin YAML file
-		if err := r.applyYAML(ctx, pluginPath, &scoring); err != nil {
+		if err := r.applyYAML(ctx, pluginPath, &scoring, mergedParameters); err != nil {
 			r.Log.Errorf("unable to apply plugin YAML %v: %v", pluginPath, err)
 			return ctrl.Result{}, err
 		}
@@ -91,8 +97,44 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
+// Add a new method to merge parameters
+func (r *ScoringPluginReconciler) mergeParameters(scoringPlugin *extensionv1beta1.ScoringPlugin, scoring *extensionv1beta1.Scoring) (map[string]interface{}, error) {
+	// Initialize pluginParameters as an empty map
+	var pluginParameters map[string]interface{}
+
+	// Check if DataPlugin has non-empty Spec.Parameters
+	if scoringPlugin.Spec.Parameters != "" {
+		// Unmarshal the parameters from DataPlugin
+		if err := json.Unmarshal([]byte(scoringPlugin.Spec.Parameters), &pluginParameters); err != nil {
+			r.Log.Errorf("unable to unmarshal plugin parameters from DataPlugin: %v", err)
+			return nil, err
+		}
+	}
+
+	// Unmarshal the parameters from scoring
+	var scoringParameters map[string]interface{}
+	if scoring.Spec.Plugin.Parameters != "" {
+		// Unmarshal the parameters from Dataset
+		if err := json.Unmarshal([]byte(scoring.Spec.Plugin.Parameters), &scoringParameters); err != nil {
+			r.Log.Errorf("unable to unmarshal plugin parameters from Dataset: %v", err)
+			return nil, err
+		}
+	}
+
+	// Merge the parameters, favoring dataset's parameters in case of conflicts
+	mergedParameters := make(map[string]interface{})
+	for key, value := range pluginParameters {
+		mergedParameters[key] = value
+	}
+	for key, value := range scoringParameters {
+		mergedParameters[key] = value
+	}
+
+	return mergedParameters, nil
+}
+
 // applyYAML reads a YAML file, replaces placeholders with environment variable values, and applies its content to the Kubernetes cluster
-func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, scoring *extensionv1beta1.Scoring) error {
+func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, scoring *extensionv1beta1.Scoring, parameters map[string]interface{}) error {
 
 	r.Log.Infof("Applying plugin YAML %v", path)
 	// Read the YAML file content
@@ -106,7 +148,7 @@ func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, sc
 	yamlStr := string(yamlFile)
 
 	// Replace placeholders with environment variable values and run-time parameters defined in the dataset
-	replacedYamlStr, err := r.replacePlaceholders(yamlStr, scoring)
+	replacedYamlStr, err := r.replacePlaceholders(yamlStr, parameters, scoring)
 	if err != nil {
 		r.Log.Errorf("unable to replace placeholders in YAML: %v", err)
 		return err
@@ -141,22 +183,13 @@ func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, sc
 }
 
 // replacePlaceholders replaces a specific placeholder in the YAML file with the value from an environment variable
-func (r *ScoringPluginReconciler) replacePlaceholders(yamlStr string, scoring *extensionv1beta1.Scoring) (string, error) {
-
-	// Parameters holding the unmarshaled parameters
-	var parameters map[string]interface{}
-
-	// Unmarshal the parameters
-	err := json.Unmarshal([]byte(scoring.Spec.Plugin.Parameters), &parameters)
-	if err != nil {
-		r.Log.Errorf("unable to unmarshal plugin parameters: %v", err)
-		return "", err
-	}
+func (r *ScoringPluginReconciler) replacePlaceholders(yamlStr string, parameters map[string]interface{}, scoring *extensionv1beta1.Scoring) (string, error) {
 
 	// Add the required fields defined in the plugin standard to parameters
-	parameters["completeNotifyUrl"] = config.GetCompleteNotifyURL()
-	parameters["inferenceService"] = scoring.Spec.InferenceService
-
+	baseUrl := config.GetCompleteNotifyURL()
+	parameters["CompleteNotifyUrl"] = "http://patch-k8s-server." + config.GetDatatunerxSystemNamespace() + ".svc.cluster.local" + baseUrl + scoring.Namespace + "/scorings/" + scoring.Name
+	parameters["InferenceService"] = scoring.Spec.InferenceService
+	r.Log.Infof("Replacing placeholder: %s", parameters)
 	// Replace the value in template yaml
 	replacedYamlStr, err := parser.ReplaceTemplate(yamlStr, parameters)
 	if err != nil {
