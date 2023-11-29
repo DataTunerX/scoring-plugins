@@ -70,7 +70,7 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Fetch the ScoringPlugin instance used by the Scoring
 	var scoringPlugin extensionv1beta1.ScoringPlugin
-	if scoring.Spec.Plugin.LoadPlugin {
+	if scoring.Spec.Plugin != nil && scoring.Spec.Plugin.LoadPlugin {
 		scoringPluginName := scoring.Spec.Plugin.Name
 		if err := r.Get(ctx, types.NamespacedName{
 			Namespace: config.GetDatatunerxSystemNamespace(),
