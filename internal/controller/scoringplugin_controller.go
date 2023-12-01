@@ -69,9 +69,10 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Fetch the ScoringPlugin instance used by the Scoring
-	var scoringPlugin extensionv1beta1.ScoringPlugin
+	// Check if Scoring.Spec.Plugin is present
 	if scoring.Spec.Plugin != nil && scoring.Spec.Plugin.LoadPlugin {
+		// Fetch the ScoringPlugin instance used by the Scoring
+		var scoringPlugin extensionv1beta1.ScoringPlugin
 		scoringPluginName := scoring.Spec.Plugin.Name
 		if err := r.Get(ctx, types.NamespacedName{
 			Namespace: config.GetDatatunerxSystemNamespace(),
@@ -94,7 +95,19 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			r.Log.Errorf("unable to apply plugin YAML %v: %v", pluginPath, err)
 			return ctrl.Result{}, err
 		}
+	} else {
+		// Default values when Scoring.Spec.Plugin is not present
+		mergedParameters := map[string]interface{}{
+			"InferenceService": scoring.Spec.InferenceService,
+		}
+		pluginPath := filepath.Join("plugins", "datatunerx", "workload", "plugin.yaml")
+		// Apply the plugin YAML file
+		if err := r.applyYAML(ctx, pluginPath, &scoring, mergedParameters); err != nil {
+			r.Log.Errorf("unable to apply plugin YAML %v: %v", pluginPath, err)
+			return ctrl.Result{}, err
+		}
 	}
+
 	return ctrl.Result{}, nil
 }
 
