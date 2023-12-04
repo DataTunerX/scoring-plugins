@@ -98,7 +98,7 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	} else {
 		// Default values when Scoring.Spec.Plugin is not present
 		mergedParameters := map[string]interface{}{
-			"InferenceService": scoring.Spec.InferenceService,
+			"Image": config.GetInTreeScoringImage(),
 		}
 		pluginPath := filepath.Join("plugins", "datatunerx", "workload", "plugin.yaml")
 		// Apply the plugin YAML file
@@ -203,7 +203,7 @@ func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, sc
 
 // generateRandomString generates a random string of specified length
 func (r *ScoringPluginReconciler) generateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const charset = "abcdefghijklmnopqrstuvwxyz"
 	result := make([]byte, length)
 	for i := range result {
 		result[i] = charset[rand.Intn(len(charset))]
