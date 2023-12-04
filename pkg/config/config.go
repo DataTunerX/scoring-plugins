@@ -13,7 +13,8 @@ func init() {
 	config.BindEnv("complete_notify_url", "COMPLETE_NOTIFY_URL")
 	// bind DATATUNERX_SYSTEM_NAMESPACE env var
 	config.BindEnv("datatunerx_system_namespace", "DATUNERX_SYSTEM_NAMESPACE")
-
+	// bind IN_TREE_SCORING_IMAGE env var
+	config.BindEnv("in_tree_scoring_image", "IN_TREE_SCORING_IMAGE")
 }
 
 func GetLevel() string {
@@ -28,4 +29,9 @@ func GetCompleteNotifyURL() string {
 // GetDatatunerxSystemNamespace fetch DATUNERX_SYSTEM_NAMESPACE env var
 func GetDatatunerxSystemNamespace() string {
 	return config.GetString("datatunerx_system_namespace")
+}
+
+// GetInTreeScoringImage fetch IN_TREE_SCORING_IMAGE env var
+func GetInTreeScoringImage() string {
+	return config.GetString("in_tree_scoring_image")
 }

@@ -5,13 +5,13 @@ metadata:
 spec:
   containers:
   - name: in-tree-scoring
-    image: release.daocloud.io/datatunerx/in-tree-scoring:v1.0
+    image: {{ .Image }}
     resources:
       limits:
         memory: "4Gi"
         cpu: "2"
       requests:
-        memory: "2GMi"
+        memory: "2Gi"
         cpu: "1"
     env:
     - name: INFERENCE_SERVICE
