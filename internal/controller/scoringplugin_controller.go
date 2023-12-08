@@ -19,9 +19,12 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	extensionv1beta1 "github.com/DataTunerX/meta-server/api/extension/v1beta1"
 	"github.com/DataTunerX/scoring-plugins/pkg/config"
@@ -216,7 +219,40 @@ func (r *ScoringPluginReconciler) replacePlaceholders(yamlStr string, parameters
 
 	// Add the required fields defined in the plugin standard to parameters
 	baseUrl := config.GetCompleteNotifyURL()
-	parameters["CompleteNotifyUrl"] = "http://patch-k8s-server." + config.GetDatatunerxSystemNamespace() + ".svc.cluster.local" + baseUrl + scoring.Namespace + "/scorings/" + scoring.Name + "/" + objName
+	var apiVersion string
+	var kind string
+	apiVersionRegex := regexp.MustCompile(`\bapiVersion:\s*([^\s]+)`)
+	kindRegex := regexp.MustCompile(`\bkind:\s*([^\s]+)`)
+
+	apiVersionMatches := apiVersionRegex.FindStringSubmatch(yamlStr)
+	kindMatches := kindRegex.FindStringSubmatch(yamlStr)
+	fmt.Printf("apiVersionMatches: %v\n", apiVersionMatches)
+	fmt.Printf("kindMatches: %v\n", kindMatches)
+	if len(apiVersionMatches) >= 2 {
+		apiVersion = strings.TrimSpace(apiVersionMatches[1])
+	}
+	if len(kindMatches) >= 2 {
+		kind = strings.TrimSpace(kindMatches[1])
+	}
+	if apiVersion == "" || kind == "" {
+		r.Log.Errorf("unable to extract apiVersion and kind from YAML string")
+	}
+	groupVersion := strings.Split(apiVersion, "/")
+	var group string
+	var version string
+	if len(groupVersion) > 1 {
+		group = groupVersion[0]
+		version = groupVersion[1]
+	} else {
+		group = "core"
+		version = groupVersion[0]
+	}
+	fmt.Printf("apiVersion: %v\n", apiVersion)
+	fmt.Printf("kind: %v\n", kind)
+	fmt.Printf("splitApiVersion: %v\n", strings.Split(apiVersion, "/"))
+	parameters["CompleteNotifyUrl"] = "http://patch-k8s-server." + config.GetDatatunerxSystemNamespace() + ".svc.cluster.local" + baseUrl +
+		scoring.Namespace + "/scorings/" + scoring.Name + "/" + group + "/" + version +
+		"/" + strings.ToLower(kind) + "s" + "/" + objName
 	parameters["InferenceService"] = scoring.Spec.InferenceService
 	parameters["Name"] = objName
 	r.Log.Infof("Replacing placeholder: %s", parameters)
