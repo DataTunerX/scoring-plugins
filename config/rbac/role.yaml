@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - extension.datatunerx.io
+  resources:
+  - scoringplugins
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - extension.datatunerx.io
+  resources:
+  - scoringplugins/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - extension.datatunerx.io
+  resources:
+  - scoringplugins/status
+  verbs:
+  - get
+  - patch
+  - update
