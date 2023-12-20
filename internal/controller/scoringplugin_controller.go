@@ -250,7 +250,7 @@ func (r *ScoringPluginReconciler) replacePlaceholders(yamlStr string, parameters
 	fmt.Printf("apiVersion: %v\n", apiVersion)
 	fmt.Printf("kind: %v\n", kind)
 	fmt.Printf("splitApiVersion: %v\n", strings.Split(apiVersion, "/"))
-	parameters["CompleteNotifyUrl"] = "http://patch-k8s-server." + config.GetDatatunerxSystemNamespace() + ".svc.cluster.local" + baseUrl +
+	parameters["CompleteNotifyUrl"] = config.GetDatatunerxServerAddress() + config.GetDatatunerxSystemNamespace() + ".svc.cluster.local" + baseUrl +
 		scoring.Namespace + "/scorings/" + scoring.Name + "/" + group + "/" + version +
 		"/" + strings.ToLower(kind) + "s" + "/" + objName
 	parameters["InferenceService"] = scoring.Spec.InferenceService
