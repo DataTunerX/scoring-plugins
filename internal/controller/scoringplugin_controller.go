@@ -92,7 +92,7 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		// Build the path to the plugin YAML file
-		pluginPath := filepath.Join("plugins", scoringPlugin.Spec.Provider, scoringPlugin.Spec.ScoringClass, "plugin.yaml")
+		pluginPath := filepath.Join("/plugins", scoringPlugin.Spec.Provider, scoringPlugin.Spec.ScoringClass, "plugin.yaml")
 		// Apply the plugin YAML file
 		if err := r.applyYAML(ctx, pluginPath, &scoring, mergedParameters); err != nil {
 			r.Log.Errorf("unable to apply plugin YAML %v: %v", pluginPath, err)
