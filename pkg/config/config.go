@@ -12,11 +12,11 @@ func init() {
 	// bind COMPLETE_NOTIFY_URL env var
 	config.BindEnv("complete_notify_url", "COMPLETE_NOTIFY_URL")
 	// bind DATATUNERX_SYSTEM_NAMESPACE env var
-	config.BindEnv("datatunerx_system_namespace", "DATUNERX_SYSTEM_NAMESPACE")
+	config.BindEnv("datatunerx_system_namespace", "DATATUNERX_SYSTEM_NAMESPACE")
 	// bind IN_TREE_SCORING_IMAGE env var
 	config.BindEnv("in_tree_scoring_image", "IN_TREE_SCORING_IMAGE")
-	config.BindEnv("datatunerx_server_address", "DATATUNERX_SERVER_ADDRESS")
-	config.SetDefault("datatunerx_server_address", "http://datatunerx-server.")
+	config.BindEnv("datatunerx_server_name", "DATATUNERX_SERVER_NAME")
+	config.SetDefault("datatunerx_server_name", "datatunerx-server")
 }
 
 func GetLevel() string {
@@ -38,6 +38,6 @@ func GetInTreeScoringImage() string {
 	return config.GetString("in_tree_scoring_image")
 }
 
-func GetDatatunerxServerAddress() string {
-	return config.GetString("datatunerx_server_address")
+func GetDatatunerxServerName() string {
+	return config.GetString("datatunerx_server_name")
 }
