@@ -17,6 +17,18 @@ func init() {
 	config.BindEnv("in_tree_scoring_image", "IN_TREE_SCORING_IMAGE")
 	config.BindEnv("datatunerx_server_name", "DATATUNERX_SERVER_NAME")
 	config.SetDefault("datatunerx_server_name", "datatunerx-server")
+	config.BindEnv("rouge1_weight", "ROUGE1_WEIGHT")
+	config.SetDefault("rouge1_weight", "0.35")
+	config.BindEnv("rouge2_weight", "ROUGE2_WEIGHT")
+	config.SetDefault("rouge2_weight", "0.4")
+	config.BindEnv("rougeL_weight", "ROUGEL_WEIGHT")
+	config.SetDefault("rougeL_weight", "0.15")
+	config.BindEnv("rougeLsum_weight", "ROUGELSUM_WEIGHT")
+	config.SetDefault("rougeLsum_weight", "0.1")
+	config.BindEnv("rouge_weight", "ROUGE_WEIGE")
+	config.SetDefault("rouge_weight", "0.75")
+	config.BindEnv("bleu_weight", "BLEU_WEIGHT")
+	config.SetDefault("bleu_weight", "0.25")
 }
 
 func GetLevel() string {
@@ -40,4 +52,28 @@ func GetInTreeScoringImage() string {
 
 func GetDatatunerxServerName() string {
 	return config.GetString("datatunerx_server_name")
+}
+
+func GetRouge1Weight() float64 {
+	return config.GetFloat64("rouge1_weight")
+}
+
+func GetRouge2Weight() float64 {
+	return config.GetFloat64("rouge2_weight")
+}
+
+func GetRougeLWeight() float64 {
+	return config.GetFloat64("rougeL_weight")
+}
+
+func GetRougeLsumWeight() float64 {
+	return config.GetFloat64("rougeLsum_weight")
+}
+
+func GetRougeWeight() float64 {
+	return config.GetFloat64("rouge_weight")
+}
+
+func GetBleuWeight() float64 {
+	return config.GetFloat64("bleu_weight")
 }

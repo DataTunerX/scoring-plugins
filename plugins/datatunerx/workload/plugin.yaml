@@ -1,23 +1,41 @@
-apiVersion: v1
-kind: Pod
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: {{ .Name }}
 spec:
-  containers:
-  - name: in-tree-scoring
-    image: {{ .Image }}
-    resources:
-      limits:
-        memory: "4Gi"
-        cpu: "2"
-      requests:
-        memory: "2Gi"
-        cpu: "1"
-    env:
-    - name: INFERENCE_SERVICE
-      value: {{ .InferenceService }}
-    - name: EVALUATION_LANGUAGE
-      value: "en"
-    - name: COMPLETE_NOTIFY_URL
-      value: {{ .CompleteNotifyUrl }}
-  restartPolicy: Always
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      containers:
+      - name: in-tree-scoring
+        image: {{ .Image }}
+        resources:
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+        env:
+        - name: INFERENCE_SERVICE
+          value: {{ .InferenceService }}
+        - name: EVALUATION_LANGUAGE
+          value: "en"
+        - name: COMPLETE_NOTIFY_URL
+          value: {{ .CompleteNotifyUrl }}
+        - name: ROUGE1_WEIGHT 
+          value: {{ .Rouge1Weight }} 
+        - name: ROUGE2_WEIGHT 
+          value: {{ .Rouge2Weight }} 
+        - name: ROUGEL_WEIGHT 
+          value: {{ .RougeLWeight }} 
+        - name: ROUGELSUM_WEIGHT 
+          value: {{ .RougeLsumWeight }} 
+        - name: ROUGE_WEIGHT 
+          value: {{ .RougeWeight }} 
+        - name: BLEU_WEIGHT 
+          value: {{ .BleuWeight }} 
+      restartPolicy: Never  # Changed to "Never" for Job
