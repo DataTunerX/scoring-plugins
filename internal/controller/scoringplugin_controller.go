@@ -20,7 +20,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -92,7 +91,7 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		// Build the path to the plugin YAML file
-		pluginPath := filepath.Join("/plugins", scoringPlugin.Spec.Provider, scoringPlugin.Spec.ScoringClass, "plugin.yaml")
+		pluginPath := filepath.Join("plugins", scoringPlugin.Spec.Provider, scoringPlugin.Spec.ScoringClass, "plugin.yaml")
 		// Apply the plugin YAML file
 		if err := r.applyYAML(ctx, pluginPath, &scoring, mergedParameters); err != nil {
 			r.Log.Errorf("unable to apply plugin YAML %v: %v", pluginPath, err)
@@ -101,9 +100,15 @@ func (r *ScoringPluginReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	} else {
 		// Default values when Scoring.Spec.Plugin is not present
 		mergedParameters := map[string]interface{}{
-			"Image": config.GetInTreeScoringImage(),
+			"Image":           config.GetInTreeScoringImage(),
+			"Rouge1Weight":    config.GetRouge1Weight(),
+			"Rouge2Weight":    config.GetRouge2Weight(),
+			"RougeLWeight":    config.GetRougeLWeight(),
+			"RougeLsumWeight": config.GetRougeLsumWeight(),
+			"RougeWeight":     config.GetRougeWeight(),
+			"BleuWeight":      config.GetBleuWeight(),
 		}
-		pluginPath := filepath.Join("/plugins", "datatunerx", "workload", "plugin.yaml")
+		pluginPath := filepath.Join("plugins", "datatunerx", "workload", "plugin.yaml")
 		// Apply the plugin YAML file
 		if err := r.applyYAML(ctx, pluginPath, &scoring, mergedParameters); err != nil {
 			r.Log.Errorf("unable to apply plugin YAML %v: %v", pluginPath, err)
@@ -164,8 +169,7 @@ func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, sc
 	// Convert the file content to a string
 	yamlStr := string(yamlFile)
 	// Generate a random string
-	randomString := r.generateRandomString(5) // You can customize the length of the random string
-	objName := scoring.GetName() + "-" + randomString
+	objName := scoring.GetName() + "-evaluation"
 	// Replace placeholders with environment variable values and run-time parameters defined in the dataset
 	replacedYamlStr, err := r.replacePlaceholders(yamlStr, parameters, scoring, objName)
 	if err != nil {
@@ -202,16 +206,6 @@ func (r *ScoringPluginReconciler) applyYAML(ctx context.Context, path string, sc
 	}
 
 	return nil
-}
-
-// generateRandomString generates a random string of specified length
-func (r *ScoringPluginReconciler) generateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyz"
-	result := make([]byte, length)
-	for i := range result {
-		result[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(result)
 }
 
 // replacePlaceholders replaces a specific placeholder in the YAML file with the value from an environment variable
