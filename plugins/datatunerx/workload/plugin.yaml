@@ -3,7 +3,8 @@ kind: Job
 metadata:
   name: {{ .Name }}
 spec:
-  backoffLimit: 6
+  ttlSecondsAfterFinished: 0
+  backoffLimit: 3
   completionMode: NonIndexed
   completions: 1
   parallelism: 1
@@ -27,15 +28,15 @@ spec:
         - name: COMPLETE_NOTIFY_URL
           value: {{ .CompleteNotifyUrl }}
         - name: ROUGE1_WEIGHT 
-          value: {{ .Rouge1Weight }} 
+          value: "{{ .Rouge1Weight }}" 
         - name: ROUGE2_WEIGHT 
-          value: {{ .Rouge2Weight }} 
+          value: "{{ .Rouge2Weight }}" 
         - name: ROUGEL_WEIGHT 
-          value: {{ .RougeLWeight }} 
+          value: "{{ .RougeLWeight }}" 
         - name: ROUGELSUM_WEIGHT 
-          value: {{ .RougeLsumWeight }} 
+          value: "{{ .RougeLsumWeight }}" 
         - name: ROUGE_WEIGHT 
-          value: {{ .RougeWeight }} 
+          value: "{{ .RougeWeight }}" 
         - name: BLEU_WEIGHT 
-          value: {{ .BleuWeight }} 
+          value: "{{ .BleuWeight }}" 
       restartPolicy: Never  # Changed to "Never" for Job
