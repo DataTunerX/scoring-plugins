@@ -54,26 +54,26 @@ func GetDatatunerxServerName() string {
 	return config.GetString("datatunerx_server_name")
 }
 
-func GetRouge1Weight() float64 {
-	return config.GetFloat64("rouge1_weight")
+func GetRouge1Weight() string {
+	return config.GetString("rouge1_weight")
 }
 
-func GetRouge2Weight() float64 {
-	return config.GetFloat64("rouge2_weight")
+func GetRouge2Weight() string {
+	return config.GetString("rouge2_weight")
 }
 
-func GetRougeLWeight() float64 {
-	return config.GetFloat64("rougeL_weight")
+func GetRougeLWeight() string {
+	return config.GetString("rougeL_weight")
 }
 
-func GetRougeLsumWeight() float64 {
-	return config.GetFloat64("rougeLsum_weight")
+func GetRougeLsumWeight() string {
+	return config.GetString("rougeLsum_weight")
 }
 
-func GetRougeWeight() float64 {
-	return config.GetFloat64("rouge_weight")
+func GetRougeWeight() string {
+	return config.GetString("rouge_weight")
 }
 
-func GetBleuWeight() float64 {
-	return config.GetFloat64("bleu_weight")
+func GetBleuWeight() string {
+	return config.GetString("bleu_weight")
 }
